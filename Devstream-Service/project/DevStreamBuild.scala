@@ -1,7 +1,6 @@
-import play.PlayImport.PlayKeys
+import sbt.Keys._
 import sbt._
-import Keys._
-import play.Play.autoImport._
+import play.sbt.Play.autoImport._
 
 
 object DevStreamBuild extends Build {
