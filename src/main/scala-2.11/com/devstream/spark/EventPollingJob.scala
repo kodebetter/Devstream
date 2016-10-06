@@ -12,26 +12,6 @@ case class DevStreamUser(providers: List[Provider])
 
 object EventPollingJob {
 
-  def main(args: Array[String]) = {
-    val sc = new SparkContext()
-    val providers = listUsers().flatMap(_.providers)
-    val providersRDD = sc.parallelize(providers)
-
-    providersRDD.foreach { provider =>
-      provider.name match {
-        case "github" => val events = GithubPoller.pollForUserEvents(provider.userName,
-          provider.authToken, provider.lastSeenId)
-
-          events.map { event =>
-
-          }
-      }
-    }
-  }
-
-  def listUsers(): List[DevStreamUser] = {
-    List(User(List(Provider("", "", "", ""))))
-  }
 
   import com.devstream.provider.github.ImplicitPayloadHandlers._
 
