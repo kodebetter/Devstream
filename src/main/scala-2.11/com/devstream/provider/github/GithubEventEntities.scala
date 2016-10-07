@@ -4,7 +4,7 @@ import com.devstream.provider.base.ProviderBasedEvent
 
 case class Repo(id: Long, name: String, url: String)
 
-case class User(userId: Long, login: String, url: String, imageUrl: String)
+case class User(id: Long, login: String, url: String, imageUrl: String)
 
 case class Event(id: String, user: User, repo: Repo,
                  payload: EventPayload) extends ProviderBasedEvent
@@ -15,7 +15,7 @@ case class Author(name: String, email: String)
 
 case class Commit(sha: String, message: String, author: Author)
 
-/* Various ghEvent payloads, will add more */
+/* Various event payloads, will add more */
 
 trait EventPayload
 
