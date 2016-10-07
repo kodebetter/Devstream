@@ -6,6 +6,7 @@ import com.devstream.apiclients.stackexchange.request.StackexchangeSite.Stackexc
 import com.devstream.apiclients.stackexchange.response.UserTimelineBase
 import com.devstream.log.Logger
 import com.devstream.provider.base.Poller
+
 import scala.collection.mutable
 
 
@@ -24,7 +25,9 @@ object StackoverflowPoller extends Poller with Logger {
 
   def pollForUserTimeline(token: String, lastSeenTimeStamp: Long): List[UserTimelineBase] = {
 
-    recursiveCall(applicationKey, token, site, 1, pageSize, lastSeenTimeStamp)
+   val list: List[UserTimelineBase] = recursiveCall(applicationKey, token, site, 1, pageSize, lastSeenTimeStamp)
+
+   list.sortWith((x,y) => x.timeStamp > y.timeStamp)
 
   }
 
