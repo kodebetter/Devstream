@@ -27,7 +27,7 @@ object EventPollingJob {
           events.flatMap { event =>
             transformEvent(event)
           }.foreach { event =>
-            
+
           }
       }
     }
@@ -36,15 +36,13 @@ object EventPollingJob {
   def listUsers(): List[DevStreamUser] = List(DevStreamUser(List(Provider("", "", "", ""))))
 
   def transformEvent(event: GhEvent) = {
-    event.getPayload match {
-      case prPayload: GhPullRequestPayload =>
-        Some(transformToDevStreamEvent(event, prPayload.transformPayload))
-      case issuePayload: GhIssuePayload =>
-        Some(transformToDevStreamEvent(event, issuePayload.transformPayload))
-      case pushPayload: GhPushPayload =>
-        Some(transformToDevStreamEvent(event, pushPayload.transformPayload))
+    val maybePayload = event.getPayload match {
+      case prPayload: GhPullRequestPayload => Some(prPayload.transformPayload)
+      case issuePayload: GhIssuePayload => Some(issuePayload.transformPayload)
+      case pushPayload: GhPushPayload => Some(pushPayload.transformPayload)
       case _ => None
     }
+    maybePayload.map(payload => transformToDevStreamEvent(event, payload))
   }
 
   def transformToDevStreamEvent(ghEvent: GhEvent, payload: EventPayload) = {
