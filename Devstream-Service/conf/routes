@@ -4,4 +4,8 @@
 
 # Home page
 
-POST          /devstream/register                  com.devstream.infiniti.controllers.UserController.registerUser
+POST          /api/v1/login                                         com.devstream.infiniti.controllers.UserController.login(token: String)
+PUT           /api/v1/user/:userId                                  com.devstream.infiniti.controllers.UserController.updateUser(userId: String)
+DELETE        /api/v1/user/:userId/provider/:providerName           com.devstream.infiniti.controllers.UserController.deleteUser(userId: String, providerName: String)
+GET           /api/v1/user/:userId/events                           com.devstream.infiniti.controllers.EventController.getUserEvents(userId: String, before: Option[String])
+GET           /api/v1/events                                        com.devstream.infiniti.controllers.EventController.getEvents(before: Option[String], after: Option[String])

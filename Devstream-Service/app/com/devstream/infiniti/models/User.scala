@@ -1,13 +1,20 @@
 package com.devstream.infiniti.models
 
+import com.devstream.infiniti.utils.Helper
+
+import scala.xml.Node
+
 /**
   * Created by sandeept on 21/9/16.
   */
 
 
-case class UserDetails(userName: String,devStreamUserId: String, providers: Seq[Provider])
+case class UserDetails(employeeId: String, profiles: Seq[Profile])
 
-case class Provider(providerName: String, providerUserId: String, authtoken: String)
+case class EmployeeDetails(ldapId: String, emailId: String, employeeId: String, firstName: String, lastName: String,
+                           workLocation: String, designation: String, profiles: List[Profile])
+
+case class Profile(providerName: String, authtoken: String, lastSeen: String, var payLoad: Map[String, AnyRef])
 
 
 object User {
@@ -15,59 +22,34 @@ object User {
   import play.api.libs.functional.syntax._
   import play.api.libs.json._
 
-
-  //TODO add the code to update user details in ES.
-
-  def save(jsValue: JsValue) = {
-
-    implicit val providers: Reads[Provider] = (
+  def update(jsValue: JsValue): UserDetails = {
+    implicit val providers: Reads[Profile] = (
       (JsPath \ "providerName").read[String] and
-        (JsPath \ "userId").read[String] and
-        (JsPath \ "authToken").read[String]
-      ) (Provider.apply _)
+        (JsPath \ "authToken").read[String] and
+        (JsPath \ "lastSeen").read[String] and
+        (JsPath \ "payload").read[Map[String,String]]
+      ) (Profile.apply _)
 
     implicit val userDetails: Reads[UserDetails] = (
-      (JsPath \ "name").read[String] and
-        (JsPath \ "devStreamUserId").read[String] and
-        (JsPath \ "providers").read[Seq[Provider]]
+      (JsPath \ "employeeId").read[String] and
+        (JsPath \ "profiles").read[Seq[Profile]]
       ) (UserDetails.apply _)
 
     val userData = jsValue.validate[UserDetails]
-    userData.map {
-      detail => println(detail.userName)
-        detail.providers.foreach {
-          providerDetail => println(providerDetail.authtoken)
-            println(providerDetail.providerUserId)
-            println(providerDetail.providerName)
-        }
-    }
-  }
-
-  def update(jsValue: JsValue) = {
-
-    implicit val providers: Reads[Provider] = (
-      (JsPath \ "providerName").read[String] and
-        (JsPath \ "userId").read[String] and
-        (JsPath \ "authToken").read[String]
-      ) (Provider.apply _)
-
-    implicit val userDetails: Reads[UserDetails] = (
-      (JsPath \ "name").read[String] and
-        (JsPath \ "devStreamUserId").read[String] and
-        (JsPath \ "providers").read[Seq[Provider]]
-      ) (UserDetails.apply _)
-
-    val userData = jsValue.validate[UserDetails]
-    userData.map {
-      detail => println(detail.userName)
-        detail.providers.foreach {
-          providerDetail => println(providerDetail.authtoken)
-            println(providerDetail.providerUserId)
-            println(providerDetail.providerName)
-        }
-    }
+    userData.get
   }
 
 
+  def extractDetails(data: Node): EmployeeDetails = {
+    import scala.collection.JavaConverters._
+    val metadata: java.util.Map[java.lang.String, java.lang.String] = Helper.transformXML(data, "attributes").asJava
+    EmployeeDetails(metadata.get("uid"), metadata.get("mail"): String, metadata.get("employeenumber"): String,
+      metadata.get("firstname"): String,metadata.get("lastname"): String,metadata.get("worklocation"): String,
+      metadata.get("jobtitle"): String, List.empty[Profile])
+  }
+
+  def extractDetailsFromJson(data: JsValue) = {
+     Helper.transformJson(data)
+  }
 
 }
