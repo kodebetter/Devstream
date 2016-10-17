@@ -12,6 +12,18 @@ import play.api.mvc.{Action, Controller}
 object TrendsController extends Controller {
 
   def getTrendingUsers(days: Option[Int]) = Action { implicit request =>
+    val (start, end) = getStartAndEndTime(days)
+    val response = TrendsDao.aggregateUsersInTimePeriod(start, end)
+    Ok(response).as("application/json")
+  }
+
+  def getTrendingProjects(days: Option[Int]) = Action { implicit request =>
+    val (start, end) = getStartAndEndTime(days)
+    val response = TrendsDao.aggregateProjectsInTimePeriod(start, end)
+    Ok(response).as("application/json")
+  }
+
+  private def getStartAndEndTime(days: Option[Int]) = {
     val intervalEnd = startOfDay.plusDays(1)
 
     val intervalStart = if (days.isDefined) {
@@ -19,10 +31,7 @@ object TrendsController extends Controller {
     } else {
       intervalEnd.minusDays(1)
     }
-
-    val response = TrendsDao
-      .aggregateUsersInTimePeriod(intervalStart.toEpochSecond, intervalEnd.toEpochSecond)
-    Ok(response).as("application/json")
+    (intervalStart.toEpochSecond, intervalEnd.toEpochSecond)
   }
 
   private def startOfDay = {

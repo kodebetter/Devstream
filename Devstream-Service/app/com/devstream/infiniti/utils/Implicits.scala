@@ -13,5 +13,8 @@ object Implicits {
 
     def asJsHitsArray() =
       JsArray(Json.parse(searchResponse.toString) \\ "_source")
+
+    def asJsAggsArray() =
+      JsArray(Json.parse(searchResponse.toString) \\ "key")
   }
 }
