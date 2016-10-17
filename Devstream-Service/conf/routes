@@ -9,3 +9,4 @@ PUT           /api/v1/user/:userId                                  com.devstrea
 DELETE        /api/v1/user/:userId/provider/:providerName           com.devstream.infiniti.controllers.UserController.deleteUser(userId: String, providerName: String)
 GET           /api/v1/user/:userId/events                           com.devstream.infiniti.controllers.EventController.getUserEvents(userId: String, before: Option[String])
 GET           /api/v1/events                                        com.devstream.infiniti.controllers.EventController.getEvents(before: Option[String], after: Option[String])
+GET           /api/v1/trends/users                                  com.devstream.infiniti.controllers.TrendsController.getTrendingUsers(days: Option[Int])
