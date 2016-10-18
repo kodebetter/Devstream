@@ -1,72 +1,43 @@
 package com.devstream.spark
 
-import com.devstream.provider.base.DevStreamEvent
-import com.devstream.provider.github.ImplicitPayloadHandlers._
-import com.devstream.provider.github.{Event, EventPayload, GithubPoller, Repo, User}
+import com.devstream.model.DevStreamEvent
+import com.devstream.poll.{GithubPoller, StackOverFlowPoller}
+import com.devstream.utils.EsUtils
 import org.apache.spark.{SparkConf, SparkContext}
-import org.eclipse.egit.github.core.event.{Event => GhEvent, EventRepository => GhEventRepository, IssuesPayload => GhIssuePayload, PullRequestPayload => GhPullRequestPayload, PushPayload => GhPushPayload}
-import org.eclipse.egit.github.core.{User => GhUser}
+import org.json4s.NoTypeHints
+import org.json4s.jackson.Serialization
 
-case class Provider(name: String, userName: String, authToken: String, lastSeenId: String)
-
-case class DevStreamUser(providers: List[Provider])
 
 object EventPollingJob {
 
-  def main(args: Array[String]) = {
+  implicit val formats = Serialization.formats(NoTypeHints)
+
+  def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
+    conf.setMaster("local[4]")
+    conf.setAppName("Test")
     val sc = new SparkContext(conf)
-    val providers = listUsers().flatMap(_.providers)
-    val providersRDD = sc.parallelize(providers)
+    val userIds = sc.parallelize(EsUtils.getUserIds)
 
-    providersRDD.foreach { provider =>
-      provider.name match {
-        case "github" => val events = GithubPoller.pollForUserEvents(provider.userName,
-          provider.authToken, provider.lastSeenId)
+    userIds.flatMap { userId =>
+      EsUtils.getDevStreamUser(userId)
+    }.foreach { user =>
+      user.profiles.foreach { profile =>
+        profile.providerName.toLowerCase match {
+          case "github" =>
+            val events = GithubPoller.pollForEvents(user, profile)
+            bulkInsertIntoES("github", events)
 
-          events.flatMap { event =>
-            transformEvent(event)
-          }.foreach { event =>
-
-          }
+          case "stackoverflow" =>
+            val events = StackOverFlowPoller.pollForEvents(user, profile)
+            bulkInsertIntoES("stackoverflow", events)
+        }
       }
     }
   }
 
-  def listUsers(): List[DevStreamUser] = List(DevStreamUser(List(Provider("", "", "", ""))))
-
-  def transformEvent(event: GhEvent) = {
-    val maybePayload = event.getPayload match {
-      case prPayload: GhPullRequestPayload => Some(prPayload.transformPayload)
-      case issuePayload: GhIssuePayload => Some(issuePayload.transformPayload)
-      case pushPayload: GhPushPayload => Some(pushPayload.transformPayload)
-      case _ => None
+  def bulkInsertIntoES(providerName: String, events: List[DevStreamEvent]): Unit =
+    if (events.nonEmpty) {
+      EsUtils.bulkInsert(providerName, events)
     }
-    maybePayload.map(payload => transformToDevStreamEvent(event, payload))
-  }
-
-  def transformToDevStreamEvent(ghEvent: GhEvent, payload: EventPayload) = {
-    val createdAt = ghEvent.getCreatedAt.getTime / 1000L
-    val id = ghEvent.getId
-    val `type` = ghEvent.getType
-    val repo = extractRepo(ghEvent.getRepo)
-    val user = extractUser(ghEvent.getActor)
-    val event = Event(id, user, repo, payload)
-    DevStreamEvent(provider = "github", `type`, event, createdAt)
-  }
-
-  def extractRepo(eventRepository: GhEventRepository): Repo = {
-    val id = eventRepository.getId
-    val name = eventRepository.getName
-    val url = eventRepository.getUrl
-    Repo(id, name, url)
-  }
-
-  def extractUser(user: GhUser): User = {
-    val id = user.getId
-    val login = user.getLogin
-    val url = user.getUrl
-    val imageUrl = user.getAvatarUrl
-    User(id, login, url, imageUrl)
-  }
 }
