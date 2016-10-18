@@ -43,7 +43,7 @@ object TrendsDao {
     JsArray(esClient.prepareSearch("devstream").setTypes("githubEvents")
       .setQuery(timeRangeQuery(start, end))
       .addAggregation(AggregationBuilders.terms("trendingProjects").script(script))
-      .get().asJsAggsArray().value.map(repoStr => repoStrToRepoObj(repoStr.as[String]))).toString()
+      .get().asJsAggsKeyArray().value.map(repoStr => repoStrToRepoObj(repoStr.as[String]))).toString()
   }
 
   private def repoStrToRepoObj(repoStr: String) = {
