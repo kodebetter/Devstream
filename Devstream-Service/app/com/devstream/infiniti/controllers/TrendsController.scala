@@ -36,7 +36,6 @@ object TrendsController extends Controller {
 
   private def startOfDay = {
     val zoneId = ZoneId.of("UTC")
-    val zonedDateTime = ZonedDateTime.ofInstant(Instant.now(), zoneId)
-    zonedDateTime.toLocalDate.atStartOfDay(zoneId)
+    ZonedDateTime.ofInstant(Instant.now(), zoneId).toLocalDate.atStartOfDay(zoneId)
   }
 }

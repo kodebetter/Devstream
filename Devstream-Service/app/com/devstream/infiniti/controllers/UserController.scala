@@ -88,11 +88,14 @@ object UserController extends Controller {
 
   def deleteUser(userId: String, providerName: String) = Action {
     implicit request =>
-      UserDao.delete(providerName,userId)
-      val response = Response("success","200")
+      UserDao.delete(providerName, userId)
+      val response = Response("success", "200")
       val write = Json.writes[Response]
       Ok(write.writes(response))
   }
 
-
+  def getUserPunchCard(userId: String) = Action { implicit request =>
+    val response = UserDao.queryForUserPunchCard(userId)
+    Ok(response)
+  }
 }
