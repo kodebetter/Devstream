@@ -8,9 +8,13 @@ import play.api.mvc.{Action, Controller}
   */
 object EventController extends Controller {
 
-  def getUserEvents(userId: String, before: Option[String]) = Action {
+  def getUserEvents(userId: String, before: Option[String], after: Option[String]) = Action {
     implicit request =>
-      val response = EventDao.getUserEvents(userId, timeStampAsLong(before))
+      val response = if (before.isDefined) {
+        EventDao.getUserEventsBefore(userId, timeStampAsLong(before))
+      } else {
+        EventDao.getUserEventsAfter(userId, timeStampAsLong(after))
+      }
       Ok(response).as("application/json")
   }
 
