@@ -1,5 +1,7 @@
 package com.devstream.infiniti.models
 
+import java.util.concurrent.TimeUnit
+
 import com.devstream.infiniti.Global
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.elasticsearch.index.query.QueryBuilders
@@ -46,7 +48,7 @@ object UserDao {
     esClient.prepareUpdate("devstream", "user", id).setScript(script).setFields("_source").get().getGetResult.sourceAsString()
   }
 
-  def queryForUserPunchCard(employeeId: String) = {
+  def queryForUserPunchCard(employeeId: String, timeZone: String) = {
 
     def boolQueryWithIdAndRangeFilters() = {
       val boolQuery = QueryBuilders.boolQuery()
@@ -58,7 +60,7 @@ object UserDao {
     esClient.prepareSearch("devstream").setTypes("githubEvents", "stackoverflowEvents")
       .setQuery(boolQueryWithIdAndRangeFilters())
       .addAggregation(AggregationBuilders.dateHistogram("activity_over_time").field("createdAt")
-        .interval(DateHistogramInterval.DAY).format("dd-MM-yyyy")).get()
+        .interval(DateHistogramInterval.DAY).format("dd-MM-yyyy").timeZone(timeZone)).get()
       .asJsAggsKeyStringAndCountArray("date").toString()
   }
 }

@@ -11,4 +11,4 @@ GET           /api/v1/user/:userId/events                           com.devstrea
 GET           /api/v1/events                                        com.devstream.infiniti.controllers.EventController.getEvents(before: Option[String], after: Option[String])
 GET           /api/v1/trends/users                                  com.devstream.infiniti.controllers.TrendsController.getTrendingUsers(days: Option[Int])
 GET           /api/v1/trends/projects                               com.devstream.infiniti.controllers.TrendsController.getTrendingProjects(days: Option[Int])
-GET           /api/v1/user/:userId/punchcard                        com.devstream.infiniti.controllers.UserController.getUserPunchCard(userId: String)
+GET           /api/v1/user/:userId/punchcard                        com.devstream.infiniti.controllers.UserController.getUserPunchCard(userId: String, timeZone: String)

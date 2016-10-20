@@ -94,8 +94,8 @@ object UserController extends Controller {
       Ok(write.writes(response))
   }
 
-  def getUserPunchCard(userId: String) = Action { implicit request =>
-    val response = UserDao.queryForUserPunchCard(userId)
-    Ok(response)
+  def getUserPunchCard(userId: String, timeZone: String) = Action { implicit request =>
+    val response = UserDao.queryForUserPunchCard(userId, timeZone)
+    Ok(response).as("application/json")
   }
 }
